@@ -42,6 +42,12 @@ export default async function ListingDetailPage({
 
   if (!listing || listing.status === "REMOVED") notFound();
 
+  const ratingAgg = await prisma.review.aggregate({
+    where: { subjectId: listing.sellerId },
+    _avg: { rating: true },
+    _count: true,
+  });
+
   const isOwner = user?.id === listing.sellerId;
   const photos = listing.images.filter((i) => i.kind === "PHOTO");
   const dyeLotPhoto = listing.images.find((i) => i.kind === "DYE_LOT_LABEL");
@@ -135,6 +141,17 @@ export default async function ListingDetailPage({
           <div className="mt-4 rounded-lg border border-slate-200 p-4">
             <h3 className="text-sm font-medium text-slate-900">Seller</h3>
             <p className="mt-1 text-sm text-slate-700">{listing.seller.name}</p>
+            {ratingAgg._count > 0 ? (
+              <p className="mt-1 text-sm text-amber-600">
+                {"★".repeat(Math.round(ratingAgg._avg.rating ?? 0))}
+                <span className="ml-1 text-slate-500">
+                  {(ratingAgg._avg.rating ?? 0).toFixed(1)} ({ratingAgg._count} review
+                  {ratingAgg._count === 1 ? "" : "s"})
+                </span>
+              </p>
+            ) : (
+              <p className="mt-1 text-xs text-slate-400">No reviews yet</p>
+            )}
             {listing.seller.accountType === "BUSINESS" && listing.seller.businessVerifiedAt && (
               <span className="badge mt-1 bg-emerald-100 text-emerald-800">
                 Verified Business{listing.seller.businessName ? ` — ${listing.seller.businessName}` : ""}
@@ -143,8 +160,9 @@ export default async function ListingDetailPage({
           </div>
 
           {!isOwner && user && (
-            <div className="mt-3">
+            <div className="mt-3 flex gap-3">
               <ReportButton targetType="LISTING" listingId={listing.id} />
+              <ReportButton targetType="USER" reportedUserId={listing.sellerId} />
             </div>
           )}
         </div>

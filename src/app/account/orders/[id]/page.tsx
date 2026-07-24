@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { ConfirmReceiptButton } from "@/components/checkout/confirm-receipt-button";
 import { DisputeForm } from "@/components/checkout/dispute-form";
+import { ReviewForm } from "@/components/checkout/review-form";
 
 export default async function OrderDetailPage({
   params,
@@ -19,7 +20,7 @@ export default async function OrderDetailPage({
 
   const transaction = await prisma.transaction.findUnique({
     where: { id },
-    include: { listing: true, buyer: true, seller: true },
+    include: { listing: true, buyer: true, seller: true, review: true },
   });
 
   if (!transaction || (transaction.buyerId !== session.user.id && transaction.sellerId !== session.user.id)) {
@@ -103,10 +104,24 @@ export default async function OrderDetailPage({
       )}
 
       {transaction.status === "RELEASED" && (
-        <div className="mt-4 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800">
-          {isBuyer
-            ? "Payment has been released to the seller."
-            : "You've been paid out for this order."}
+        <div className="mt-4 flex flex-col gap-3">
+          <div className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-800">
+            {isBuyer
+              ? "Payment has been released to the seller."
+              : "You've been paid out for this order."}
+          </div>
+          {isBuyer &&
+            (transaction.review ? (
+              <div className="card text-sm">
+                <p className="font-medium text-slate-900">Your review</p>
+                <p className="text-amber-500">{"★".repeat(transaction.review.rating)}</p>
+                {transaction.review.comment && (
+                  <p className="mt-1 text-slate-600">{transaction.review.comment}</p>
+                )}
+              </div>
+            ) : (
+              <ReviewForm transactionId={transaction.id} />
+            ))}
         </div>
       )}
     </div>
