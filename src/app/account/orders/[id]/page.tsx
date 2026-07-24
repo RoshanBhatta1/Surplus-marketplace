@@ -3,6 +3,8 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { ConfirmReceiptButton } from "@/components/checkout/confirm-receipt-button";
+import { DisputeForm } from "@/components/checkout/dispute-form";
 
 export default async function OrderDetailPage({
   params,
@@ -83,6 +85,30 @@ export default async function OrderDetailPage({
           </div>
         )}
       </div>
+
+      {isBuyer && transaction.status === "FUNDS_HELD" && (
+        <div className="mt-4 flex flex-col gap-3">
+          <p className="text-sm text-slate-600">
+            Let the seller know you got the material, or flag an issue before the hold window ends.
+          </p>
+          <ConfirmReceiptButton transactionId={transaction.id} />
+          <DisputeForm transactionId={transaction.id} />
+        </div>
+      )}
+
+      {transaction.status === "DISPUTED" && (
+        <div className="mt-4 rounded-md bg-amber-50 p-3 text-sm text-amber-800">
+          This order is under review by an admin. Payment release is paused.
+        </div>
+      )}
+
+      {transaction.status === "RELEASED" && (
+        <div className="mt-4 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800">
+          {isBuyer
+            ? "Payment has been released to the seller."
+            : "You've been paid out for this order."}
+        </div>
+      )}
     </div>
   );
 }
