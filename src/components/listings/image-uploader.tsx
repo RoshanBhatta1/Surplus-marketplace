@@ -59,7 +59,7 @@ export function ImageUploader({
         </p>
         <p className="text-xs text-slate-500">
           This is the provenance proof buyers check most closely — a clear photo of the box label or run
-          tag builds trust even when there's no dye lot number on file.
+          tag builds trust even when there&apos;s no dye lot number on file.
         </p>
         <div className="mt-2 flex flex-wrap gap-3">
           {dyeLotPhotos.map((img) => (

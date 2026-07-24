@@ -55,7 +55,7 @@ export default async function OrdersPage() {
             <div>
               <p className="text-sm font-medium text-slate-900">{t.listing.title}</p>
               <p className="text-xs text-slate-500">
-                You'll receive {formatCurrency(t.sellerPayoutAmount)} · {formatDate(t.createdAt)}
+                You&apos;ll receive {formatCurrency(t.sellerPayoutAmount)} · {formatDate(t.createdAt)}
               </p>
             </div>
             <span className="badge bg-slate-100 text-slate-700">{statusLabels[t.status] ?? t.status}</span>

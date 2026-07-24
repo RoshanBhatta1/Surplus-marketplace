@@ -17,7 +17,7 @@ export default async function PayoutsPage() {
           <div>
             <span className="badge bg-emerald-100 text-emerald-800">Payouts enabled</span>
             <p className="mt-2 text-sm text-slate-600">
-              You're set up to receive payouts when a sale's hold period ends.
+              You&apos;re set up to receive payouts when a sale&apos;s hold period ends.
             </p>
             <div className="mt-4">
               <ConnectOnboardingButton label="Update payout details" />
@@ -26,7 +26,7 @@ export default async function PayoutsPage() {
         ) : (
           <div>
             <p className="text-sm text-slate-600">
-              Connect a payout account with Stripe before you can sell. You'll be paid out (minus
+              Connect a payout account with Stripe before you can sell. You&apos;ll be paid out (minus
               platform commission) once a buyer confirms receipt or the hold window ends.
             </p>
             <div className="mt-4">

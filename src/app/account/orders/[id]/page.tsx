@@ -33,7 +33,7 @@ export default async function OrderDetailPage({
     <div className="mx-auto max-w-2xl px-4 py-8">
       {success && transaction.status === "PENDING_PAYMENT" && (
         <div className="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-800">
-          Payment is processing — this page will update once it's confirmed.
+          Payment is processing — this page will update once it&apos;s confirmed.
         </div>
       )}
       {success && transaction.status !== "PENDING_PAYMENT" && (
