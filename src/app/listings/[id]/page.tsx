@@ -127,7 +127,7 @@ export default async function ListingDetailPage({
                   <RemoveListingButton listingId={listing.id} />
                 </div>
               ) : (
-                <BuyBox listing={listing} isLoggedIn={Boolean(user)} />
+                <BuyBox listing={listing} isLoggedIn={Boolean(user)} currentUserId={user?.id} />
               )}
             </div>
           </div>

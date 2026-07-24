@@ -59,6 +59,12 @@ export default async function AccountPage() {
         <Link href="/account/orders" className="underline">
           My orders
         </Link>
+        <Link href="/account/payouts" className="underline">
+          Payouts
+        </Link>
+        <Link href="/account/offers" className="underline">
+          Offers
+        </Link>
       </div>
     </div>
   );

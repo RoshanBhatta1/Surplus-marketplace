@@ -263,6 +263,11 @@ enum OfferStatus {
   WITHDRAWN
 }
 
+enum OfferProposedBy {
+  BUYER
+  SELLER
+}
+
 model Offer {
   id        String  @id @default(cuid())
   listingId String
@@ -270,9 +275,10 @@ model Offer {
   buyerId   String
   buyer     User    @relation("BuyerOffers", fields: [buyerId], references: [id])
 
-  amount   Decimal     @db.Decimal(12, 2) // proposed total price
-  quantity Decimal     @db.Decimal(12, 2)
-  status   OfferStatus @default(PENDING)
+  amount     Decimal         @db.Decimal(12, 2) // proposed total price
+  quantity   Decimal         @db.Decimal(12, 2)
+  status     OfferStatus     @default(PENDING)
+  proposedBy OfferProposedBy @default(BUYER) // whose proposal this row represents — the other side acts next
 
   // Counter-offer thread: self-relation to the offer being responded to.
   respondsToId String?
