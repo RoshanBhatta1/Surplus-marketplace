@@ -3,13 +3,10 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
 import { registerSchema, type RegisterInput } from "@/lib/validation/auth";
-import { registerUser } from "@/app/actions/auth";
+import { DemoNotice } from "@/components/demo/demo-notice";
 
 export function RegisterForm() {
-  const router = useRouter();
-  const [serverError, setServerError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
   const {
@@ -24,26 +21,13 @@ export function RegisterForm() {
 
   const accountType = watch("accountType");
 
-  async function onSubmit(values: RegisterInput) {
-    setServerError(null);
-    const result = await registerUser(values);
-    if (!result.ok) {
-      setServerError(result.error);
-      return;
-    }
+  async function onSubmit() {
+    // No backend in this demo build.
     setSubmitted(true);
-    setTimeout(() => router.push("/login"), 2500);
   }
 
   if (submitted) {
-    return (
-      <div className="text-center">
-        <h1 className="text-xl font-semibold">Check your email</h1>
-        <p className="mt-2 text-sm text-slate-600">
-          We sent a verification link to your email address. Redirecting you to sign in…
-        </p>
-      </div>
-    );
+    return <DemoNotice message="This is a UI preview — account creation isn't connected to a backend." />;
   }
 
   return (
@@ -88,8 +72,6 @@ export function RegisterForm() {
           </Field>
         </>
       )}
-
-      {serverError && <p className="text-sm text-red-600">{serverError}</p>}
 
       <button
         type="submit"

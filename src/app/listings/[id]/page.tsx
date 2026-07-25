@@ -1,8 +1,6 @@
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth-helpers";
+import { getDemoListing } from "@/lib/demo/data";
 import { formatCurrency } from "@/lib/format";
 import {
   materialTypeLabels,
@@ -11,9 +9,8 @@ import {
   listingTypeLabels,
   fulfillmentOptionLabels,
 } from "@/lib/validation/listing";
-import { RemoveListingButton } from "@/components/listings/remove-listing-button";
-import { BuyBox } from "@/components/checkout/buy-box";
-import { ReportButton } from "@/components/trust/report-button";
+import { DemoBuyBox } from "@/components/demo/demo-buy-box";
+import { DemoReportButton } from "@/components/demo/demo-report-button";
 
 export default async function ListingDetailPage({
   params,
@@ -21,34 +18,10 @@ export default async function ListingDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const user = await getCurrentUser();
+  const listing = getDemoListing(id);
 
-  const listing = await prisma.listing.findUnique({
-    where: { id },
-    include: {
-      images: { orderBy: { position: "asc" } },
-      seller: {
-        select: {
-          id: true,
-          name: true,
-          accountType: true,
-          businessName: true,
-          businessVerifiedAt: true,
-          createdAt: true,
-        },
-      },
-    },
-  });
+  if (!listing) notFound();
 
-  if (!listing || listing.status === "REMOVED") notFound();
-
-  const ratingAgg = await prisma.review.aggregate({
-    where: { subjectId: listing.sellerId },
-    _avg: { rating: true },
-    _count: true,
-  });
-
-  const isOwner = user?.id === listing.sellerId;
   const photos = listing.images.filter((i) => i.kind === "PHOTO");
   const dyeLotPhoto = listing.images.find((i) => i.kind === "DYE_LOT_LABEL");
 
@@ -57,17 +30,14 @@ export default async function ListingDetailPage({
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
         <div className="lg:col-span-3">
           <div className="grid grid-cols-2 gap-2">
-            {photos.length > 0 ? (
-              photos.map((img) => (
-                <div key={img.id} className="relative aspect-square overflow-hidden rounded-lg border border-slate-200">
-                  <Image src={img.url} alt={listing.title} fill unoptimized className="object-cover" />
-                </div>
-              ))
-            ) : (
-              <div className="col-span-2 flex aspect-video items-center justify-center rounded-lg border border-dashed border-slate-300 text-sm text-slate-400">
-                No photos
+            {photos.map((img) => (
+              <div
+                key={img.url}
+                className="relative aspect-square overflow-hidden rounded-lg border border-slate-200"
+              >
+                <Image src={img.url} alt={listing.title} fill unoptimized className="object-cover" />
               </div>
-            )}
+            ))}
           </div>
 
           <div className="mt-4 rounded-lg border border-slate-200 p-4">
@@ -116,7 +86,7 @@ export default async function ListingDetailPage({
               <span className="text-sm font-normal text-slate-500">/ {unitOfMeasureLabels[listing.unitOfMeasure]}</span>
             </p>
             <p className="text-sm text-slate-600">
-              {Number(listing.quantity).toLocaleString("en-CA")} {unitOfMeasureLabels[listing.unitOfMeasure]} available ·
+              {listing.quantity.toLocaleString("en-CA")} {unitOfMeasureLabels[listing.unitOfMeasure]} available ·
               total {formatCurrency(listing.totalPrice)}
             </p>
             <p className="mt-2 text-sm text-slate-600">{fulfillmentOptionLabels[listing.fulfillmentOption]}</p>
@@ -125,15 +95,10 @@ export default async function ListingDetailPage({
             )}
 
             <div className="mt-4">
-              {isOwner ? (
-                <div className="flex gap-2">
-                  <Link href={`/sell/${listing.id}/edit`} className="btn-secondary">
-                    Edit listing
-                  </Link>
-                  <RemoveListingButton listingId={listing.id} />
-                </div>
+              {listing.status === "SOLD" ? (
+                <p className="text-sm text-slate-500">This listing has sold.</p>
               ) : (
-                <BuyBox listing={listing} isLoggedIn={Boolean(user)} currentUserId={user?.id} />
+                <DemoBuyBox totalPrice={listing.totalPrice} isBestOffer={listing.listingType === "BEST_OFFER"} />
               )}
             </div>
           </div>
@@ -141,12 +106,12 @@ export default async function ListingDetailPage({
           <div className="mt-4 rounded-lg border border-slate-200 p-4">
             <h3 className="text-sm font-medium text-slate-900">Seller</h3>
             <p className="mt-1 text-sm text-slate-700">{listing.seller.name}</p>
-            {ratingAgg._count > 0 ? (
+            {listing.rating.count > 0 ? (
               <p className="mt-1 text-sm text-amber-600">
-                {"★".repeat(Math.round(ratingAgg._avg.rating ?? 0))}
+                {"★".repeat(Math.round(listing.rating.avg))}
                 <span className="ml-1 text-slate-500">
-                  {(ratingAgg._avg.rating ?? 0).toFixed(1)} ({ratingAgg._count} review
-                  {ratingAgg._count === 1 ? "" : "s"})
+                  {listing.rating.avg.toFixed(1)} ({listing.rating.count} review
+                  {listing.rating.count === 1 ? "" : "s"})
                 </span>
               </p>
             ) : (
@@ -159,12 +124,10 @@ export default async function ListingDetailPage({
             )}
           </div>
 
-          {!isOwner && user && (
-            <div className="mt-3 flex gap-3">
-              <ReportButton targetType="LISTING" listingId={listing.id} />
-              <ReportButton targetType="USER" reportedUserId={listing.sellerId} />
-            </div>
-          )}
+          <div className="mt-3 flex gap-3">
+            <DemoReportButton label="Report listing" />
+            <DemoReportButton label="Report user" />
+          </div>
         </div>
       </div>
     </div>

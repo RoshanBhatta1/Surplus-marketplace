@@ -3,17 +3,14 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { loginSchema } from "@/lib/validation/auth";
+import { DemoNotice } from "@/components/demo/demo-notice";
 import type { z } from "zod";
 
 type LoginInput = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [serverError, setServerError] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
 
   const {
     register,
@@ -21,25 +18,13 @@ export function LoginForm() {
     formState: { errors, isSubmitting },
   } = useForm<LoginInput>({ resolver: zodResolver(loginSchema) });
 
-  async function onSubmit(values: LoginInput) {
-    setServerError(null);
-    const result = await signIn("credentials", {
-      email: values.email,
-      password: values.password,
-      redirect: false,
-    });
+  async function onSubmit() {
+    // No backend in this demo build.
+    setSubmitted(true);
+  }
 
-    if (result?.error) {
-      setServerError(
-        result.error === "ACCOUNT_SUSPENDED"
-          ? "This account has been suspended. Contact support."
-          : "Invalid email or password."
-      );
-      return;
-    }
-
-    router.push(searchParams.get("callbackUrl") ?? "/");
-    router.refresh();
+  if (submitted) {
+    return <DemoNotice message="This is a UI preview — authentication isn't connected to a backend." />;
   }
 
   return (
@@ -58,16 +43,11 @@ export function LoginForm() {
         {errors.password && <span className="text-red-600">{errors.password.message}</span>}
       </label>
 
-      {serverError && <p className="text-sm text-red-600">{serverError}</p>}
-
       <button type="submit" disabled={isSubmitting} className="btn-primary">
         {isSubmitting ? "Signing in…" : "Log in"}
       </button>
 
-      <div className="flex justify-between text-sm">
-        <a href="/forgot-password" className="text-slate-600 underline">
-          Forgot password?
-        </a>
+      <div className="flex justify-end text-sm">
         <a href="/register" className="text-slate-600 underline">
           Create account
         </a>
