@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
 import {
   createListingSchema,
   type CreateListingInput,
@@ -19,18 +18,11 @@ import {
   fulfillmentOptions,
   fulfillmentOptionLabels,
 } from "@/lib/validation/listing";
-import { createListing, updateListing } from "@/app/actions/listings";
 import { ImageUploader, type ListingImageInput } from "@/components/listings/image-uploader";
+import { DemoNotice } from "@/components/demo/demo-notice";
 
-type Props = {
-  mode: "create" | "edit";
-  listingId?: string;
-  defaultValues?: Partial<CreateListingFormInput>;
-};
-
-export function ListingForm({ mode, listingId, defaultValues }: Props) {
-  const router = useRouter();
-  const [serverError, setServerError] = useState<string | null>(null);
+export function ListingForm() {
+  const [submitted, setSubmitted] = useState(false);
 
   const {
     register,
@@ -45,7 +37,6 @@ export function ListingForm({ mode, listingId, defaultValues }: Props) {
       listingType: "FIXED_PRICE",
       fulfillmentOption: "LOCAL_PICKUP",
       images: [],
-      ...defaultValues,
     },
   });
 
@@ -55,19 +46,21 @@ export function ListingForm({ mode, listingId, defaultValues }: Props) {
   const pricePerUnit = watch("pricePerUnit");
   const unitOfMeasure = watch("unitOfMeasure");
 
-  async function onSubmit(values: CreateListingInput) {
-    setServerError(null);
-    const result =
-      mode === "create" ? await createListing(values) : await updateListing(listingId!, values);
-    if (!result.ok) {
-      setServerError(result.error);
-      return;
-    }
-    router.push(`/listings/${result.id}`);
+  async function onSubmit() {
+    // No backend in this demo build — just confirm the form validated.
+    setSubmitted(true);
   }
 
   const total =
     quantity && pricePerUnit ? (Number(quantity) * Number(pricePerUnit)).toFixed(2) : null;
+
+  if (submitted) {
+    return (
+      <div className="mx-auto max-w-2xl">
+        <DemoNotice message="Form validated successfully. This is a UI preview — no listing was actually created." />
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="mx-auto flex max-w-2xl flex-col gap-6 pb-16">
@@ -229,10 +222,8 @@ export function ListingForm({ mode, listingId, defaultValues }: Props) {
         )}
       </section>
 
-      {serverError && <p className="text-sm text-red-600">{serverError}</p>}
-
       <button type="submit" disabled={isSubmitting} className="btn-primary">
-        {isSubmitting ? "Saving…" : mode === "create" ? "Publish listing" : "Save changes"}
+        {isSubmitting ? "Saving…" : "Publish listing"}
       </button>
     </form>
   );

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { searchListings } from "@/lib/search";
+import { searchListings } from "@/lib/demo/search";
 import { ListingCard } from "@/components/listings/listing-card";
 import { SearchFilters } from "@/components/listings/search-filters";
 import { SortSelect } from "@/components/listings/sort-select";
